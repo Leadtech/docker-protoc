@@ -6,13 +6,14 @@ endif
 .PHONY: login all build push
 .DEFAULT_GOAL      := help
 DOCKER_BIN         ?= docker
+PROTOC_VERSION     ?= 21.12
 DOCKER_IMAGE       ?= leadtech/protoc
 IMAGE_VERSION      ?= 0.0.1
 DOCKER_FILE        ?= Dockerfile
-DOCKER_BUILD_FLAGS ?= --no-cache
+DOCKER_BUILD_FLAGS ?=
 DOCKER_BUILD_PATH  ?= $(PWD)
-ENV_FILE		   ?= .env
 
+ENV_FILE		   ?= .env
 -include $(ENV_FILE)
 export $(shell [ ! -n "$(ENV_FILE)" ] || cat $(ENV_FILE) | grep -v \
     --regexp '^('$$(env | sed 's/=.*//'g | tr '\n' '|')')\=')
@@ -31,10 +32,11 @@ login:
 build:
 	$(DOCKER_BIN) image build $(DOCKER_BUILD_PATH) $(DOCKER_BUILD_FLAGS) \
 		-f $(DOCKER_FILE) \
-		--tag=${DOCKER_IMAGE}:${IMAGE_VERSION} \
+		--tag=${DOCKER_IMAGE}:${PROTOC_VERSION} \
 		--build-arg GIT_BRANCH=$(BRANCH) \
+		--build-arg PROTOC_VERSION=$(PROTOC_VERSION) \
 		--build-arg GIT_REPO=$(GIT_REPO) \
 		--build-arg GIT_COMMIT=$(GIT_COMMIT)
 
 push:
-	docker push $(DOCKER_IMAGE):$(IMAGE_VERSION)
+	docker push $(DOCKER_IMAGE):$(PROTOC_VERSION)
